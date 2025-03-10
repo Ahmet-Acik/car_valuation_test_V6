@@ -40,6 +40,20 @@ resources
 
 ## Explanation of Classes and Files
 
+### 1. `car_input - V6.txt`
+This file contains a textual description of car valuation in the UK and provides sample registration numbers along with their estimated value or market status.
+
+### 2. `car_output - V6.txt`
+This file provides a structured CSV-style output that maps valid vehicle registrations to their respective make, model, and year. It also lists unrecognized registrations.
+
+### 3. `cleaned_test_data.txt`
+This file contains a refined version of extracted registration numbers, classifying them as either **VALID** or **not recognised**.
+
+### 4. `expected_output.txt`
+This file represents the expected final structured output, to be compared with `car_output - V6.txt`, ensuring consistency between the processed data and expected results.
+
+
+
 ### `VehicleRegistrationExtractor.java`
 
 - **Purpose**: Extracts vehicle registration numbers from input files and categorizes them as valid or invalid.
@@ -47,6 +61,28 @@ resources
     - `main(String[] args)`: Entry point for the extraction process. It extracts valid and invalid registration numbers and writes them to an output file.
     - `extractRegistrationNumbers(Pattern pattern)`: Extracts registration numbers from input files based on the provided pattern.
     - `linesFromFile(Path path)`: Reads lines from a file.
+
+###  Implementation
+
+The  class **VehicleRegistrationExtractor** is responsible for processing the input files, extracting registration numbers, and generating cleaned test data.
+
+### **Key Functionalities:**
+- **Extracts valid and invalid vehicle registrations** using regex patterns.
+- **Filters out invalid registrations** that do not conform to UK formats.
+- **Writes cleaned data** into `cleaned_test_data.txt`.
+- **Compares results** with `expected_output.txt` for validation.
+
+### **Regex Patterns Used:**
+- **Valid UK registrations:** `\\b[A-Z]{2}[0-9]{2} [A-Z]{3}\\b`
+- **Invalid registrations:** The regex identifies unrecognized registration numbers by capturing 1-7 character alphanumeric entries, excluding valid UK formats (XX00 XXX) using a negative lookahead.
+
+###  Process:
+1. The program dynamically reads all *_input.txt files from the test directory, regardless of the number of files present in the directory.
+2. It extracts valid and invalid vehicle registrations.
+3. Valid registrations are marked as **VALID**.
+4. Unrecognized registrations are flagged as **"The license plate number is not recognised"**.
+5. The processed data is written to `cleaned_test_data.txt`.
+6. The output is compared with `expected_output.txt
 
 - **Best Practices Used**:
     - **Descriptive Method Names**: Methods are named clearly to describe their actions.

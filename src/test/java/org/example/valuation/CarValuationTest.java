@@ -22,12 +22,18 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Test class for car valuation functionality.
+ */
 public class CarValuationTest {
+
+    private static final String OUTPUT_FILE_PATH = "src/test/resources/car_output - V6.txt";
+    private static final String EXPECTED_OUTPUT_FILE_PATH = "src/test/resources/expected_output.txt";
 
     @BeforeAll
     public static void setup() throws IOException {
         // Clear the output file before starting the tests
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/test/resources/car_output - V6.txt"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH))) {
             writer.write("VARIANT_REG,MAKE,MODEL,YEAR\n");
         }
 
@@ -63,7 +69,7 @@ public class CarValuationTest {
                         System.out.println("Entered Registration Number: " + registrationNumber);
                         System.out.println("Alert Message: " + alertMessage);
                         // Write the error details to the output file
-                        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/test/resources/car_output - V6.txt", true))) {
+                        try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH, true))) {
                             writer.write(String.format("%s,%s%n", registrationNumber, alertMessage));
                         }
                         // Skip the rest of the test logic for this input
@@ -85,7 +91,7 @@ public class CarValuationTest {
             String year = carReportPage.getYearOfManufacture();
 
             // Write the results to the output file
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/test/resources/car_output - V6.txt", true))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH, true))) {
                 writer.write(String.format("%s,%s,%s,%s%n", regNumber, make, model, year));
             }
         } finally {
@@ -94,24 +100,24 @@ public class CarValuationTest {
     }
 
     @Test
-public void compareOutputWithExpected() throws IOException {
-    List<String> actualOutput = Files.readAllLines(Paths.get("src/test/resources/car_output - V6.txt"));
-    List<String> expectedOutput = Files.readAllLines(Paths.get("src/test/resources/expected_output.txt"));
+    public void compareOutputWithExpected() throws IOException {
+        List<String> actualOutput = Files.readAllLines(Paths.get(OUTPUT_FILE_PATH));
+        List<String> expectedOutput = Files.readAllLines(Paths.get(EXPECTED_OUTPUT_FILE_PATH));
 
-    // Assert that the number of lines in the actual output matches the expected output
-    assertEquals(expectedOutput.size(), actualOutput.size(), "The number of lines in the actual output does not match the expected output.");
+        // Assert that the number of lines in the actual output matches the expected output
+        assertEquals(expectedOutput.size(), actualOutput.size(), "The number of lines in the actual output does not match the expected output.");
 
-    for (int i = 0; i < expectedOutput.size(); i++) {
-        String[] expectedFields = expectedOutput.get(i).split(",");
-        String[] actualFields = actualOutput.get(i).split(",");
+        for (int i = 0; i < expectedOutput.size(); i++) {
+            String[] expectedFields = expectedOutput.get(i).split(",");
+            String[] actualFields = actualOutput.get(i).split(",");
 
-        // Assert that the number of fields in each line matches
-        assertEquals(expectedFields.length, actualFields.length, "The number of fields in line " + (i + 1) + " does not match.");
+            // Assert that the number of fields in each line matches
+            assertEquals(expectedFields.length, actualFields.length, "The number of fields in line " + (i + 1) + " does not match.");
 
-        for (int j = 0; j < expectedFields.length; j++) {
-            // Assert that each field's content matches
-            assertEquals(expectedFields[j], actualFields[j], "Field " + (j + 1) + " in line " + (i + 1) + " does not match.");
+            for (int j = 0; j < expectedFields.length; j++) {
+                // Assert that each field's content matches
+                assertEquals(expectedFields[j], actualFields[j], "Field " + (j + 1) + " in line " + (i + 1) + " does not match.");
+            }
         }
     }
-}
 }

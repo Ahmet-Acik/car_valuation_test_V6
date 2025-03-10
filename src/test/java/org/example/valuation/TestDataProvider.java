@@ -8,13 +8,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+/**
+ * Provides test data for car valuation tests.
+ */
 public class TestDataProvider {
 
-    // Method to provide car data from the cleaned input file
-    public static Stream<Arguments> carDataProvider() throws IOException {
-        Path inputFile = Paths.get("src/test/resources/cleaned_test_data.txt");
+    private static final Path INPUT_FILE = Paths.get("src/test/resources/cleaned_test_data.txt");
 
-        return Files.lines(inputFile)
+    /**
+     * Provides car data from the cleaned input file.
+     *
+     * @return a stream of arguments for parameterized tests
+     * @throws IOException if an I/O error occurs
+     */
+    public static Stream<Arguments> carDataProvider() throws IOException {
+        return Files.lines(INPUT_FILE)
                 .skip(1) // Skip the header line
                 .filter(line -> !line.trim().isEmpty()) // Filter out empty lines
                 .map(line -> {

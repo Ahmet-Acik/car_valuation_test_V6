@@ -14,8 +14,9 @@ This project extracts vehicle registration numbers from input files, categorizes
 - **WebDriverManager 5.6.3**: Library for managing WebDriver binaries.
 
 ## Project Structure
+
 ```
-ssrc
+src
 ├── main
 │   └── java
 │       └── org
@@ -23,19 +24,22 @@ ssrc
 │               └── valuation
 │                   ├── CarCheckingPage.java
 │                   ├── CarReportPage.java
+│                   ├── DriverSingleton.java
 │                   └── VehicleRegistrationExtractor.java
 └── test
-    └── java
-        └── org
-            └── example
-                └── valuation
-                    ├── CarValuationTest.java
-                    └── TestDataProvider.java
-resources
-└── test
+  └── java
+      └── org
+         └── example
+                    └── valuation
+                     ├── CarValuationTest.java
+                      └── TestDataProvider.java
+
     └── resources
-        ├── cleaned_test_data.txt
-        └── expected_output.txt
+            ├── car_input - V6.txt
+            ├── car_output - V6.txt
+            ├── cleaned_test_data.txt
+            ├── config.properties
+            └── expected_output.txt
 ```
 
 ## Explanation of Classes and Files

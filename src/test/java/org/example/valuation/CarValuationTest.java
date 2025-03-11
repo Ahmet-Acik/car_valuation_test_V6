@@ -62,7 +62,7 @@ public class CarValuationTest {
     @MethodSource("org.example.valuation.TestDataProvider#carDataProvider")
     public void testCarValuation(String registrationNumber, String expectedMessage) throws IOException {
         WebDriver driver = DriverSingleton.getDriver();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
         try {
             // Navigate to the car checking page
@@ -141,7 +141,7 @@ public class CarValuationTest {
     public void testInvalidRegistrationNumber() throws IOException {
         String invalidRegistrationNumber = "INVALID123";
         WebDriver driver = DriverSingleton.getDriver();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
         try {
             // Navigate to the car checking page
@@ -166,7 +166,7 @@ public class CarValuationTest {
     @Test
 public void testWebsiteDown() {
     WebDriver driver = DriverSingleton.getDriver();
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
     try {
         // Navigate to a non-existent page to simulate website down

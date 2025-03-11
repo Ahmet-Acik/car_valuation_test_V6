@@ -20,7 +20,7 @@ public class DriverSingleton {
     private static final Logger logger = LogManager.getLogger(DriverSingleton.class);
     private static WebDriver driver;
     private static final String CONFIG_FILE_PATH = "src/test/resources/config.properties";
-    private static final Duration IMPLICIT_WAIT_TIMEOUT = Duration.ofSeconds(3);
+    private static final Duration IMPLICIT_WAIT_TIMEOUT = Duration.ofSeconds(2);
 
     private DriverSingleton() {}
 

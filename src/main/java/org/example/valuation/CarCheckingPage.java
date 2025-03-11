@@ -16,7 +16,7 @@ public class CarCheckingPage {
     private static final Logger logger = LogManager.getLogger(CarCheckingPage.class);
     private final WebDriver driver;
     private final WebDriverWait wait;
-    private static final Duration WAIT_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration WAIT_TIMEOUT = Duration.ofSeconds(2);
 
     // Locators
     private static final By REG_NUMBER_INPUT = By.xpath("//input[@id='subForm1']");

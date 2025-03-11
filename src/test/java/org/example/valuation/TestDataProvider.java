@@ -1,5 +1,7 @@
 package org.example.valuation;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.util.stream.Stream;
  */
 public class TestDataProvider {
 
+    private static final Logger logger = LogManager.getLogger(TestDataProvider.class);
     private static final Path INPUT_FILE = Paths.get("src/test/resources/cleaned_test_data.txt");
 
     /**
@@ -22,12 +25,17 @@ public class TestDataProvider {
      * @throws IOException if an I/O error occurs
      */
     public static Stream<Arguments> carDataProvider() throws IOException {
-        return Files.lines(INPUT_FILE)
-                .skip(1) // Skip the header line
-                .filter(line -> !line.trim().isEmpty()) // Filter out empty lines
-                .map(line -> {
-                    String[] parts = line.split(",");
-                    return Arguments.of(parts[0], parts[1]);
-                });
+        try {
+            return Files.lines(INPUT_FILE)
+                    .skip(1) // Skip the header line
+                    .filter(line -> !line.trim().isEmpty()) // Filter out empty lines
+                    .map(line -> {
+                        String[] parts = line.split(",");
+                        return Arguments.of(parts[0], parts[1]);
+                    });
+        } catch (IOException e) {
+            logger.error("Error reading input file: " + INPUT_FILE, e);
+            throw e;
+        }
     }
 }

@@ -3,11 +3,14 @@ package org.example.valuation;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Page Object Model for the Car Report Page.
  */
 public class CarReportPage {
+    private static final Logger logger = LogManager.getLogger(CarReportPage.class);
     private final WebDriver driver;
 
     // Locators
@@ -32,7 +35,9 @@ public class CarReportPage {
      */
     public String getRegistrationNumber() {
         WebElement regNumberElement = driver.findElement(REG_NUMBER_ELEMENT);
-        return regNumberElement.getAttribute("value");
+        String regNumber = regNumberElement.getAttribute("value");
+        logger.info("Retrieved registration number: " + regNumber);
+        return regNumber;
     }
 
     /**
@@ -42,7 +47,9 @@ public class CarReportPage {
      */
     public String getMake() {
         WebElement makeElement = driver.findElement(MAKE_ELEMENT);
-        return makeElement.getText();
+        String make = makeElement.getText();
+        logger.info("Retrieved make: " + make);
+        return make;
     }
 
     /**
@@ -52,7 +59,9 @@ public class CarReportPage {
      */
     public String getModel() {
         WebElement modelElement = driver.findElement(MODEL_ELEMENT);
-        return modelElement.getText();
+        String model = modelElement.getText();
+        logger.info("Retrieved model: " + model);
+        return model;
     }
 
     /**
@@ -62,6 +71,8 @@ public class CarReportPage {
      */
     public String getYearOfManufacture() {
         WebElement yearElement = driver.findElement(YEAR_ELEMENT);
-        return yearElement.getText();
+        String year = yearElement.getText();
+        logger.info("Retrieved year of manufacture: " + year);
+        return year;
     }
 }

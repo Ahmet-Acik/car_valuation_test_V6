@@ -1,5 +1,8 @@
 package org.example.valuation;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +19,7 @@ import java.util.regex.MatchResult;
  */
 public class VehicleRegistrationExtractor {
 
+    private static final Logger logger = LogManager.getLogger(VehicleRegistrationExtractor.class);
     private static final Path INPUT_DIR = Paths.get("src/test/resources");
     private static final String VALID_REGEX = "\\b[A-Z]{2}[0-9]{2} [A-Z]{3}\\b";
     private static final String INVALID_REGEX = "\\b(?![A-Z]{2}[0-9]{2} [A-Z]{3}\\b)[A-Z0-9]{1,7}\\b";
@@ -40,8 +44,9 @@ public class VehicleRegistrationExtractor {
             ).collect(Collectors.toList());
 
             Files.write(OUTPUT_FILE, allRegistrationNumbers);
+            logger.info("Successfully wrote registration numbers to output file");
         } catch (IOException e) {
-            System.err.println("Error processing files: " + e.getMessage());
+            logger.error("Error processing files", e);
         }
     }
 
@@ -75,6 +80,7 @@ public class VehicleRegistrationExtractor {
         try {
             return Files.lines(path);
         } catch (IOException e) {
+            logger.error("Error reading file: " + path, e);
             throw new RuntimeException("Error reading file: " + path, e);
         }
     }

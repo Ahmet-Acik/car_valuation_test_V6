@@ -163,6 +163,37 @@ The  class **VehicleRegistrationExtractor** is responsible for processing the in
 - **Parameterized Tests**: Tests are parameterized to run with multiple sets of data.
 
 
+### Project Enhancements
+
+#### SingletonDriver
+- **Purpose**: Ensures a single instance of the WebDriver is used throughout the tests, improving resource management and test stability.
+- **Implementation**: The `SingletonDriver` class provides a static method to get the WebDriver instance and ensures it is initialized only once.
+
+#### config.properties
+- **Purpose**: Centralizes configuration settings for the tests, such as the browser type.
+- **Usage**: The `config.properties` file contains key-value pairs for configuration settings. For example:
+  ```ini
+  browser=chrome
+  ```
+- **Integration**: The `SingletonDriver` class reads this file to determine which browser to initialize.
+
+#### Logging
+- **Purpose**: Replaces `System.out.println` statements with a robust logging framework to improve traceability and debugging.
+- **Implementation**: The `log4j` library is used for logging. Log messages are written to the console and can be configured to write to files or other destinations.
+- **Example**:
+  ```java
+  private static final Logger logger = LogManager.getLogger(CarValuationTest.class);
+  ```
+
+#### Class Reformatting
+- **Purpose**: Improves code readability and maintainability by adhering to consistent coding standards and best practices.
+- **Changes**:
+    - Encapsulated constants for file paths and URLs.
+    - Improved exception handling with meaningful error messages.
+    - Added parameterized tests for better test coverage.
+
+These enhancements collectively improve the maintainability, readability, and robustness of the test suite.
+
 
 ## Setup and Run
 

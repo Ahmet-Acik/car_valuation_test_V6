@@ -24,16 +24,16 @@ src
 │               └── valuation
 │                   ├── CarCheckingPage.java
 │                   ├── CarReportPage.java
-│                   ├── DriverSingleton.java
-│                   └── VehicleRegistrationExtractor.java
+│                   └──DriverSingleton.java
+
 └── test
   └── java
       └── org
          └── example
                     └── valuation
                      ├── CarValuationTest.java
-                      └── TestDataProvider.java
-
+                     └── TestDataProvider.java
+                     └── VehicleRegistrationExtractor.java
     └── resources
             ├── car_input - V6.txt
             ├── car_output - V6.txt

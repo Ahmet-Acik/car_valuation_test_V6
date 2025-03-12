@@ -1,6 +1,5 @@
 package org.example.valuation;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -14,20 +13,25 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Test class for car valuation functionality.
+ * This class contains tests for the Car Valuation application.
+ * It includes tests for valid and invalid registration numbers,
+ * as well as a comparison of the actual output with the expected output.
  */
+@TestMethodOrder(OrderAnnotation.class)
 public class CarValuationTest {
 
     private static final Logger logger = LogManager.getLogger(CarValuationTest.class);
@@ -37,151 +41,250 @@ public class CarValuationTest {
     private static final String CAR_REPORT_URL = "https://car-checking.com/report";
     private static WebDriver driver;
 
+    /**
+     * Sets up the test environment by initializing the output file and extracting registration numbers.
+     *
+     * @throws IOException if an I/O error occurs
+     */
     @BeforeAll
     public static void setup() throws IOException {
-        // Clear the output file before starting the tests
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH))) {
             writer.write("VARIANT_REG,MAKE,MODEL,YEAR\n");
         }
-        // Run the data extraction step
-        VehicleRegistrationExtractor.main(new String[]{});
+        VehicleRegistrationExtractor.extractAndWriteRegistrationNumbers();
     }
 
+    /**
+     * Initializes the WebDriver before each test.
+     */
     @BeforeEach
     public void setUp() {
-        // Initialize the WebDriver
         driver = DriverSingleton.getDriver();
     }
 
+    /**
+     * Closes the WebDriver after each test.
+     */
     @AfterEach
     public void tearDown() {
         DriverSingleton.closeDriver();
     }
 
-    @ParameterizedTest
-    @MethodSource("org.example.valuation.TestDataProvider#carDataProvider")
-    public void testCarValuation(String registrationNumber, String expectedMessage) throws IOException {
-        WebDriver driver = DriverSingleton.getDriver();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+    /**
+     * Navigates to the car checking page and enters the given registration number.
+     *
+     * @param registrationNumber the registration number to enter
+     */
+    private void navigateToCarCheckingPage(String registrationNumber) {
+        driver.get(CAR_CHECKING_URL);
+        CarCheckingPage carCheckingPage = new CarCheckingPage(driver);
+        carCheckingPage.enterRegistrationNumber(registrationNumber);
+        carCheckingPage.submitForm();
+    }
 
-        try {
-            // Navigate to the car checking page
-            driver.get(CAR_CHECKING_URL);
-            CarCheckingPage carCheckingPage = new CarCheckingPage(driver);
-            carCheckingPage.enterRegistrationNumber(registrationNumber);
-            carCheckingPage.submitForm();
-
-            // Check for error alert or report page
-            boolean isErrorPresent = wait.until(ExpectedConditions.or(
-                    ExpectedConditions.presenceOfElementLocated(By.cssSelector(".alert.alert-danger")),
-                    ExpectedConditions.urlContains("report")
-            )) != null;
-
-            if (isErrorPresent) {
-                try {
-                    WebElement errorAlert = driver.findElement(By.cssSelector(".alert.alert-danger"));
-                    if (errorAlert.isDisplayed()) {
-                        String alertMessage = errorAlert.getText();
-                        logger.info("Entered Registration Number: " + registrationNumber);
-                        logger.info("Alert Message: " + alertMessage);
-                        // Write the error details to the output file
-                        try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH, true))) {
-                            writer.write(String.format("%s,%s%n", registrationNumber, alertMessage));
-                        }
-                        // Skip the rest of the test logic for this input
-                        return;
-                    }
-                } catch (org.openqa.selenium.NoSuchElementException e) {
-                    // No error alert found, proceed with the happy path
-                }
-            }
-
-            // Navigate to the report page
-            driver.get(CAR_REPORT_URL);
-            CarReportPage carReportPage = new CarReportPage(driver);
-
-            // Extract car details
-            String regNumber = carReportPage.getRegistrationNumber();
-            String make = carReportPage.getMake();
-            String model = carReportPage.getModel();
-            String year = carReportPage.getYearOfManufacture();
-
-            // Write the results to the output file
+    /**
+     * Checks for an error alert on the page and writes the alert message to the output file if found.
+     *
+     * @param wait the WebDriverWait instance
+     * @param registrationNumber the registration number that was entered
+     * @return true if an error alert is found, false otherwise
+     * @throws IOException if an I/O error occurs
+     */
+    private boolean checkForErrorAlert(WebDriverWait wait, String registrationNumber) throws IOException {
+        WebElement errorAlert = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".alert.alert-danger")));
+        if (errorAlert != null && errorAlert.isDisplayed()) {
+            String alertMessage = errorAlert.getText();
+            logger.info("Entered Registration Number: " + registrationNumber);
+            logger.info("Alert Message: " + alertMessage);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH, true))) {
+                writer.write(String.format("%s,%s%n", registrationNumber, alertMessage));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks for data elements on the car report page.
+     *
+     * @param wait the WebDriverWait instance
+     * @param registrationNumber the registration number that was entered
+     * @return true if data elements are found, false otherwise
+     */
+    private boolean checkForDataElements(WebDriverWait wait, String registrationNumber) {
+        try {
+            CarReportPage carReportPage = new CarReportPage(driver);
+            String regNumber = carReportPage.getRegistrationNumber();
+            return regNumber != null && !regNumber.isEmpty();
+        } catch (org.openqa.selenium.TimeoutException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Extracts car details from the car report page and writes them to the output file.
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    private void extractAndWriteCarDetails() throws IOException {
+        CarReportPage carReportPage = new CarReportPage(driver);
+        String regNumber = carReportPage.getRegistrationNumber();
+        String make = carReportPage.getMake();
+        String model = carReportPage.getModel();
+        String year = carReportPage.getYearOfManufacture();
+
+        logger.info("Extracted details - RegNumber: " + regNumber + ", Make: " + make + ", Model: " + model + ", Year: " + year);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH, true))) {
+            if (regNumber != null && !regNumber.isEmpty() && make != null && !make.isEmpty() && model != null && !model.isEmpty() && year != null && !year.isEmpty()) {
                 writer.write(String.format("%s,%s,%s,%s%n", regNumber, make, model, year));
+                logger.info("Written valid details to file.");
+            } else {
+                writer.write(String.format("%s,The license plate number is not recognised%n", regNumber != null ? regNumber : ""));
+                logger.info("Written invalid details to file.");
+            }
+        }
+    }
+
+    /**
+     * Tests valid registration numbers by navigating to the car checking page and extracting car details.
+     *
+     * @param validRegistrationNumber the valid registration number to test
+     * @throws IOException if an I/O error occurs
+     */
+    @Order(1)
+    @ParameterizedTest
+    @MethodSource("validRegistrationNumbersProvider")
+    public void testValidRegistrationNumber(String validRegistrationNumber) throws IOException {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+        try {
+            navigateToCarCheckingPage(validRegistrationNumber);
+            if (checkForDataElements(wait, validRegistrationNumber)) {
+                extractAndWriteCarDetails();
             }
         } finally {
             // driver.quit();
         }
     }
 
+    /**
+     * Provides valid registration numbers for parameterized tests.
+     *
+     * @return a stream of valid registration numbers
+     * @throws IOException if an I/O error occurs
+     */
+    static Stream<String> validRegistrationNumbersProvider() throws IOException {
+        BufferedReader reader = Files.newBufferedReader(Paths.get("src/test/resources/cleaned_test_data.txt"));
+        return reader.lines()
+                .skip(1)
+                .map(line -> line.split(","))
+                .filter(fields -> fields.length == 2 && "VALID".equals(fields[1]))
+                .map(fields -> fields[0])
+                .onClose(() -> {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+    }
+
+    /**
+     * Tests invalid registration numbers by navigating to the car checking page and checking for error alerts.
+     *
+     * @param invalidRegistrationNumber the invalid registration number to test
+     * @throws IOException if an I/O error occurs
+     */
+    @Order(2)
+    @ParameterizedTest
+    @MethodSource("invalidRegistrationNumbersProvider")
+    public void testInvalidRegistrationNumberDataDriven(String invalidRegistrationNumber) throws IOException {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+        try {
+            navigateToCarCheckingPage(invalidRegistrationNumber);
+            checkForErrorAlert(wait, invalidRegistrationNumber);
+        } finally {
+            // driver.quit();
+        }
+    }
+
+    /**
+     * Provides invalid registration numbers for parameterized tests.
+     *
+     * @return a stream of invalid registration numbers
+     * @throws IOException if an I/O error occurs
+     */
+    static Stream<String> invalidRegistrationNumbersProvider() throws IOException {
+        BufferedReader reader = Files.newBufferedReader(Paths.get("src/test/resources/cleaned_test_data.txt"));
+        return reader.lines()
+                .skip(1)
+                .map(line -> line.split(","))
+                .filter(fields -> fields.length == 2 && "The license plate number is not recognised".equals(fields[1]))
+                .map(fields -> fields[0])
+                .onClose(() -> {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+    }
+
+    /**
+     * Tests an invalid registration number by navigating to the car checking page and checking for error alerts.
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    @Order(3)
+    @Test
+    public void testInvalidRegistrationNumber() throws IOException {
+        String invalidRegistrationNumber = "INVALID123";
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+        try {
+            navigateToCarCheckingPage(invalidRegistrationNumber);
+            checkForErrorAlert(wait, invalidRegistrationNumber);
+        } finally {
+            // driver.quit();
+        }
+    }
+
+    /**
+     * Compares the actual output with the expected output.
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    @Order(4)
     @Test
     public void compareOutputWithExpected() throws IOException {
         List<String> actualOutput = Files.readAllLines(Paths.get(OUTPUT_FILE_PATH));
         List<String> expectedOutput = Files.readAllLines(Paths.get(EXPECTED_OUTPUT_FILE_PATH));
-
-        // Assert that the number of lines in the actual output matches the expected output
         assertEquals(expectedOutput.size(), actualOutput.size(), "The number of lines in the actual output does not match the expected output.");
-
         for (int i = 0; i < expectedOutput.size(); i++) {
             String[] expectedFields = expectedOutput.get(i).split(",");
             String[] actualFields = actualOutput.get(i).split(",");
-
-            // Assert that the number of fields in each line matches
             assertEquals(expectedFields.length, actualFields.length, "The number of fields in line " + (i + 1) + " does not match.");
-
             for (int j = 0; j < expectedFields.length; j++) {
-                // Assert that each field's content matches
                 assertEquals(expectedFields[j], actualFields[j], "Field " + (j + 1) + " in line " + (i + 1) + " does not match.");
             }
         }
     }
 
+    /**
+     * Tests the website's response to a non-existent page by checking for a 404 error.
+     */
+    @Order(5)
     @Test
-    public void testInvalidRegistrationNumber() throws IOException {
-        String invalidRegistrationNumber = "INVALID123";
-        WebDriver driver = DriverSingleton.getDriver();
+    public void testWebsiteDown() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-
         try {
-            // Navigate to the car checking page
-            driver.get(CAR_CHECKING_URL);
-            CarCheckingPage carCheckingPage = new CarCheckingPage(driver);
-            carCheckingPage.enterRegistrationNumber(invalidRegistrationNumber);
-            carCheckingPage.submitForm();
-
-            // Check for error alert
-            WebElement errorAlert = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".alert.alert-danger")));
-            String alertMessage = errorAlert.getText();
-            logger.info("Entered Invalid Registration Number: " + invalidRegistrationNumber);
-            logger.info("Alert Message: " + alertMessage);
-
-            // Assert that the error message is as expected
-            assertEquals("The license plate number is not recognised", alertMessage);
+            driver.get("https://car-checking.com/nonexistentpage");
+            boolean is404 = wait.until(d -> {
+                String pageSource = driver.getPageSource();
+                return pageSource.contains("404") || pageSource.contains("Not Found");
+            });
+            assertEquals(true, is404, "Expected 404 Not Found error was not found.");
         } finally {
             // driver.quit();
         }
     }
-
-    @Test
-public void testWebsiteDown() {
-    WebDriver driver = DriverSingleton.getDriver();
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-
-    try {
-        // Navigate to a non-existent page to simulate website down
-        driver.get("https://car-checking.com/nonexistentpage");
-
-        // Wait for the page to load and check the status code
-        boolean is404 = wait.until(d -> {
-            String pageSource = driver.getPageSource();
-            return pageSource.contains("404") || pageSource.contains("Not Found");
-        });
-
-        // Assert that the 404 error is displayed
-        assertEquals(true, is404, "Expected 404 Not Found error was not found.");
-    } finally {
-        // driver.quit();
-    }
-}
 }

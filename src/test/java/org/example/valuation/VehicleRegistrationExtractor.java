@@ -27,7 +27,10 @@ public class VehicleRegistrationExtractor {
     private static final Pattern INVALID_PATTERN = Pattern.compile(INVALID_REGEX);
     private static final Path OUTPUT_FILE = Paths.get("src/test/resources/cleaned_test_data.txt");
 
-    public static void main(String[] args) {
+    /**
+     * Extracts and writes registration numbers to the output file.
+     */
+    public static void extractAndWriteRegistrationNumbers() {
         try {
             List<String> validRegistrationNumbers = extractRegistrationNumbers(VALID_PATTERN);
             List<String> invalidRegistrationNumbers = extractRegistrationNumbers(INVALID_PATTERN)

@@ -17,3 +17,4 @@ ZVD,The license plate number is not recognised
 VZS,The license plate number is not recognised
 XYX,The license plate number is not recognised
 ABC,The license plate number is not recognised
+INVALID123,The license plate number is not recognised

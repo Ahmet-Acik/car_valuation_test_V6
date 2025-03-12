@@ -25,15 +25,16 @@ src
 │                   ├── CarCheckingPage.java
 │                   ├── CarReportPage.java
 │                   └──DriverSingleton.java
-
+└── resources
+    └── log4j2.xml
 └── test
   └── java
       └── org
          └── example
                     └── valuation
-                     ├── CarValuationTest.java
-                     └── TestDataProvider.java
-                     └── VehicleRegistrationExtractor.java
+                        ├── CarValuationTest.java
+                        └── TestDataProvider.java
+                        └── VehicleRegistrationExtractor.java
     └── resources
             ├── car_input - V6.txt
             ├── car_output - V6.txt
@@ -129,15 +130,20 @@ The  class **VehicleRegistrationExtractor** is responsible for processing the in
 
 - **Purpose**: Test class for car valuation functionality. It uses Selenium WebDriver to interact with a web application and verify the car valuation process.
 - **Key Methods**:
-    - `setup()`: This method is annotated with `@BeforeAll` and is executed once before all tests. It clears the output file and runs the data extraction step.
-    - `testCarValuation(String registrationNumber, String expectedMessage)`: This is a parameterized test method that takes a registration number and an expected message as inputs. It performs the following steps:
-        - Sets up the Chrome WebDriver.
-        - Navigates to the car checking page and enters the registration number.
-        - Submits the form and checks for any error alerts.
-        - **If an error alert is present (this is where the test fails if the car registration details are not found on the comparison site or there are mismatches), it writes the error details to the output file and skips the rest of the test logic.**
-        - If no error alert is found, it navigates to the report page and extracts car details (registration number, make, model, year).
-        - Writes the extracted car details to the output file.
-        - `compareOutputWithExpected()`: This method reads the actual output from the output file and compares it with the expected output. It verifies that the number of lines and the content of each field match the expected output.
+    - `setup()`: This method is annotated with `@BeforeAll` and is executed once before all tests. It initializes the output file and runs the data extraction step.
+    - `setUp()`: This method is annotated with `@BeforeEach` and initializes the WebDriver before each test.
+    - `tearDown()`: This method is annotated with `@AfterEach` and closes the WebDriver after each test.
+    - `navigateToCarCheckingPage(String registrationNumber)`: Navigates to the car checking page and enters the given registration number.
+    - `checkForErrorAlert(WebDriverWait wait, String registrationNumber)`: Checks for an error alert on the page and writes the alert message to the output file if found.
+    - `checkForDataElements(WebDriverWait wait, String registrationNumber)`: Checks for data elements on the car report page.
+    - `extractAndWriteCarDetails()`: Extracts car details from the car report page and writes them to the output file.
+    - `testValidRegistrationNumber(String validRegistrationNumber)`: Tests valid registration numbers by navigating to the car checking page and extracting car details.
+    - `validRegistrationNumbersProvider()`: Provides valid registration numbers for parameterized tests.
+    - `testInvalidRegistrationNumberDataDriven(String invalidRegistrationNumber)`: Tests invalid registration numbers by navigating to the car checking page and checking for error alerts.
+    - `invalidRegistrationNumbersProvider()`: Provides invalid registration numbers for parameterized tests.
+    - `testInvalidRegistrationNumber()`: Tests hard-coded invalid registration number by navigating to the car checking page and checking for error alerts.
+    - `compareOutputWithExpected()`: Compares the actual output with the expected output.
+    - `testWebsiteDown()`: Tests the website's response to a non-existent page by checking for a 404 error.
 
 - **Best Practices Used**:
     - **Descriptive Method Names**: Methods are named clearly to describe their actions.
@@ -145,7 +151,7 @@ The  class **VehicleRegistrationExtractor** is responsible for processing the in
     - **Proper Exception Handling**: Meaningful error messages are provided when exceptions occur.
     - **Parameterized Tests**: Tests are parameterized to run with multiple sets of data.
     - **Resource Management**: Resources such as WebDriver and file writers are properly managed and closed after use.
-    - 
+  
 ### `TestDataProvider.java`
 
 - **Purpose**: Provides test data for car valuation tests.

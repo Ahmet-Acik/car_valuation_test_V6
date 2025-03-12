@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -85,7 +86,7 @@ public class CarValuationTest {
     /**
      * Checks for an error alert on the page and writes the alert message to the output file if found.
      *
-     * @param wait the WebDriverWait instance
+     * @param wait               the WebDriverWait instance
      * @param registrationNumber the registration number that was entered
      * @return true if an error alert is found, false otherwise
      * @throws IOException if an I/O error occurs
@@ -107,7 +108,7 @@ public class CarValuationTest {
     /**
      * Checks for data elements on the car report page.
      *
-     * @param wait the WebDriverWait instance
+     * @param wait               the WebDriverWait instance
      * @param registrationNumber the registration number that was entered
      * @return true if data elements are found, false otherwise
      */
@@ -231,21 +232,37 @@ public class CarValuationTest {
     }
 
     /**
-     * Tests an invalid registration number by navigating to the car checking page and checking for error alerts.
+     * Tests invalid registration numbers by navigating to the car checking page and checking for error alerts.
      *
+     * @param registrationNumber the invalid registration number to test
+     * @param expectedMessage    the expected error message
      * @throws IOException if an I/O error occurs
      */
+
     @Order(3)
-    @Test
-    public void testInvalidRegistrationNumber() throws IOException {
-        String invalidRegistrationNumber = "INVALID123";
+    @ParameterizedTest
+    @MethodSource("hardcodedInvalidRegistrationNumbersProvider")
+    public void testHardcodedInvalidRegistrationNumber(String registrationNumber, String expectedMessage) throws IOException {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
         try {
-            navigateToCarCheckingPage(invalidRegistrationNumber);
-            checkForErrorAlert(wait, invalidRegistrationNumber);
+            navigateToCarCheckingPage(registrationNumber);
+            boolean alertFound = checkForErrorAlert(wait, registrationNumber);
+            assertEquals(expectedMessage, alertFound ? "The license plate number is not recognised" : "");
         } finally {
             // driver.quit();
         }
+    }
+
+    static Stream<Arguments> hardcodedInvalidRegistrationNumbersProvider() {
+        return Stream.of(
+                Arguments.of("INVALID123", "The license plate number is not recognised"),
+                Arguments.of("1", "The license plate number is not recognised"),
+                Arguments.of("A", "The license plate number is not recognised"),
+                Arguments.of("A1A", "The license plate number is not recognised"),
+                Arguments.of("AAA", "The license plate number is not recognised"),
+                Arguments.of("AA00", "The license plate number is not recognised"),
+                Arguments.of("AA00 XXX", "The license plate number is not recognised")
+        );
     }
 
     /**

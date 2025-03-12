@@ -18,3 +18,9 @@ VZS,The license plate number is not recognised
 XYX,The license plate number is not recognised
 ABC,The license plate number is not recognised
 INVALID123,The license plate number is not recognised
+1,The license plate number is not recognised
+A,The license plate number is not recognised
+A1A,The license plate number is not recognised
+AAA,The license plate number is not recognised
+AA00,The license plate number is not recognised
+AA00 XXX,The license plate number is not recognised
